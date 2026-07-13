@@ -1,35 +1,64 @@
 {% set name = "holidays" %}
-{% set version = "0.83" %}
+{% set version = "0.100" %}
 
 package:
-  name: {{ name|lower }}
+  name: {{ name }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 99b97b002079ab57dac93295933907d2aae2742ad9a4d64fe33864dfae6805fa
+  - url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+    sha256: 76e963cd17758ba0e0519daff725f676eaebeda71e500cd235f647307be31e31
+  - url: https://github.com/vacanza/holidays/archive/refs/tags/v{{ version }}.zip
+    sha256: 0bf4f32c4e4ee7a152eca486fdc50d55cd17b6843a20d18e6d424c8fab19cd51
+    folder: upstream-tests
 
 build:
   number: 0
   script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  skip: true  # [py<310]
 
 requirements:
   host:
     - python
     - pip
-    - setuptools
+    - setuptools >=77
     - wheel
   run:
     - python
-    - python-dateutil
+    - python-dateutil >=2.9.0.post0,<3
 
+# The l10n test module cannot be collected because it imports
+# the unavailable dependency polib at module level.
+{% set ignore_tests = "--ignore=upstream-tests/tests/test_l10n.py" %}
+# The following test_utils tests rely on the upstream repository
+# source layout to inspect and count country and financial modules,
+# which are not available in the installed-package test environment.
+{% set deselect_tests = "--deselect=tests/test_utils.py::TestListLocalizedEntities::test_localized_countries" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_utils.py::TestListLocalizedEntities::test_localized_financial" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_utils.py::TestListSupportedEntities::test_list_supported_countries" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_utils.py::TestListSupportedEntities::test_list_supported_financial" %}
+# The following documentation tests rely on documentation and
+# metadata files from the upstream repository, which are not included
+# in the installed-package test environment.
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_docs.py::TestContributors::test_contributors_list" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_docs.py::TestReadme::test_supported_countries_count" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_docs.py::TestReadme::test_supported_countries_table" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_docs.py::TestReadme::test_supported_markets_table" %}
 test:
+  source_files:
+    - upstream-tests/scripts
+    - upstream-tests/tests
+    - upstream-tests/pyproject.toml
   imports:
     - holidays
   requires:
     - pip
+    - pytest
+    - pytest-cov
+    - numpy
   commands:
     - pip check
+    - python -m pytest upstream-tests/tests {{ ignore_tests }} {{ deselect_tests }}
 
 about:
   home: https://github.com/vacanza/holidays
@@ -42,11 +71,10 @@ about:
     specific sets of holidays on the fly. It aims to make determining whether a
     specific date is a holiday as fast and flexible as possible.
   dev_url: https://github.com/vacanza/holidays
-  doc_url: https://pypi.org/project/holidays/
+  doc_url: https://holidays.readthedocs.io
 
 extra:
   recipe-maintainers:
     - bletham
     - rpanai
     - synapticarbors
-    
