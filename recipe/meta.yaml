@@ -1,15 +1,32 @@
 {% set name = "holidays" %}
-{% set version = "0.100" %}
+{% set version = "0.106" %}
+{% set ignore_tests = "--ignore=upstream-tests/tests/test_l10n.py" %}
+{% set deselect_tests = "--deselect=tests/test_utils.py::TestListLocalizedEntities::test_localized_countries" %}
+{% set deselect_tests = 'deselect_tests + " --deselect=tests/test_utils.py::TestListLocalizedEntities::test_localized_financial"' %}
+{% set deselect_tests = 'deselect_tests + " --deselect=tests/test_utils.py::TestListSupportedEntities::test_list_supported_countries"' %}
+{% set deselect_tests = 'deselect_tests + " --deselect=tests/test_utils.py::TestListSupportedEntities::test_list_supported_financial"' %}
+{% set deselect_tests = 'deselect_tests + " --deselect=tests/test_docs.py::TestContributors::test_contributors_list"' %}
+{% set deselect_tests = 'deselect_tests + " --deselect=tests/test_docs.py::TestReadme::test_supported_countries_count"' %}
+{% set deselect_tests = 'deselect_tests + " --deselect=tests/test_docs.py::TestReadme::test_supported_countries_table"' %}
+{% set deselect_tests = 'deselect_tests + " --deselect=tests/test_docs.py::TestReadme::test_supported_markets_table"' %}
 
+# The l10n test module cannot be collected because it imports
+# the unavailable dependency polib at module level.
+# The following test_utils tests rely on the upstream repository
+# source layout to inspect and count country and financial modules,
+# which are not available in the installed-package test environment.
+# The following documentation tests rely on documentation and
+# metadata files from the upstream repository, which are not included
+# in the installed-package test environment.
 package:
   name: {{ name }}
   version: {{ version }}
 
 source:
   - url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-    sha256: 76e963cd17758ba0e0519daff725f676eaebeda71e500cd235f647307be31e31
+    sha256: 2e635a59102acb47e79a751c37fb04eff5ac77069a3b33d58cbfad66d243ffb3
   - url: https://github.com/vacanza/holidays/archive/refs/tags/v{{ version }}.zip
-    sha256: 0bf4f32c4e4ee7a152eca486fdc50d55cd17b6843a20d18e6d424c8fab19cd51
+    sha256: 2f65f97c3fc933966d5e1e93e27a29c9549da02cf300e322ec40fd829c3c1d44
     folder: upstream-tests
 
 build:
@@ -27,23 +44,6 @@ requirements:
     - python
     - python-dateutil >=2.9.0.post0,<3
 
-# The l10n test module cannot be collected because it imports
-# the unavailable dependency polib at module level.
-{% set ignore_tests = "--ignore=upstream-tests/tests/test_l10n.py" %}
-# The following test_utils tests rely on the upstream repository
-# source layout to inspect and count country and financial modules,
-# which are not available in the installed-package test environment.
-{% set deselect_tests = "--deselect=tests/test_utils.py::TestListLocalizedEntities::test_localized_countries" %}
-{% set deselect_tests = deselect_tests + " --deselect=tests/test_utils.py::TestListLocalizedEntities::test_localized_financial" %}
-{% set deselect_tests = deselect_tests + " --deselect=tests/test_utils.py::TestListSupportedEntities::test_list_supported_countries" %}
-{% set deselect_tests = deselect_tests + " --deselect=tests/test_utils.py::TestListSupportedEntities::test_list_supported_financial" %}
-# The following documentation tests rely on documentation and
-# metadata files from the upstream repository, which are not included
-# in the installed-package test environment.
-{% set deselect_tests = deselect_tests + " --deselect=tests/test_docs.py::TestContributors::test_contributors_list" %}
-{% set deselect_tests = deselect_tests + " --deselect=tests/test_docs.py::TestReadme::test_supported_countries_count" %}
-{% set deselect_tests = deselect_tests + " --deselect=tests/test_docs.py::TestReadme::test_supported_countries_table" %}
-{% set deselect_tests = deselect_tests + " --deselect=tests/test_docs.py::TestReadme::test_supported_markets_table" %}
 test:
   source_files:
     - upstream-tests/scripts
