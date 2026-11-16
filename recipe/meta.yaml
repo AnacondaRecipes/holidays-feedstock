@@ -1,5 +1,5 @@
 {% set name = "holidays" %}
-{% set version = "0.107" %}
+{% set version = "0.108" %}
 
 package:
   name: {{ name }}
@@ -7,15 +7,15 @@ package:
 
 source:
   - url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-    sha256: 2f02cdfbe41a5f14e053590f2385a932fe42f0c692aed75cb55601ad37cebb4d
+    sha256: b6daaa1f630512427fb0889700efaf9fa2eb4209f777ef4ce9ee216a4f0d0691
   - url: https://github.com/vacanza/holidays/archive/refs/tags/v{{ version }}.zip
-    sha256: b0df7c5607999b0f915d0e82ba00bd7e2444b0d5c0fc322c87e9ae455a35bb82
+    sha256: bdec0360236a0eea35902de8486707babf7a28be5f74bc41d8f3f0e019eef6fc
     folder: upstream-tests
 
 build:
   number: 0
   script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
-  skip: true  # [py<310]
+  skip: true  # [py<311]
 
 requirements:
   host:
